@@ -2,28 +2,23 @@ package com.manage.userbackend.beans;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users")
-public class UserBean {
+@Table(name = "user_permissions")
+public class UserPermissionBean {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    private String fullName;
-    private String email;
-    private String password;
-    private boolean deactivated;
     @OneToOne
     @JoinColumn(name = "roleId")
     private RoleBean role;
-    private String token;
-
+    @OneToOne
+    @JoinColumn(name = "permissionId")
+    private PermissionsBean permission;
 }

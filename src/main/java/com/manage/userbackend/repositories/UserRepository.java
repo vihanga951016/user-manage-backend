@@ -2,9 +2,16 @@ package com.manage.userbackend.repositories;
 
 import com.manage.userbackend.beans.UserBean;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
+@Repository
 public interface UserRepository extends JpaRepository<UserBean, Integer> {
-    Optional<UserBean> findByEmail(String email);
+
+    UserBean findByEmail(String email);
+
+    UserBean getById(Integer id);
+
+    @Query("SELECT u FROM UserBean u WHERE u.role.role = 'SUPER_ADMIN'")
+    UserBean findAnyAdmin();
 }
