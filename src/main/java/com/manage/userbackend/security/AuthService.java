@@ -1,7 +1,10 @@
 package com.manage.userbackend.security;
 
 import com.manage.userbackend.beans.UserBean;
+import com.manage.userbackend.beans.UserPermissionBean;
 import com.manage.userbackend.beans.requests.auth.AuthRequestBean;
+import com.manage.userbackend.repositories.UserPermissionRepository;
+import com.manage.userbackend.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +24,9 @@ public class AuthService {
     private static Logger LOGGER = LogManager.getLogger(AuthService.class);
 
     private final JwtTokenUtil jwtTokenUtil;
+
+    private final UserRepository userRepository;
+    private final UserPermissionRepository userPermissionRepository;
 
     public String createUserLoginToken(UserBean userBean, String password){
         Map<String, Object> claims = new HashMap<>();
@@ -53,30 +59,31 @@ public class AuthService {
                 (new User(userType, password, new ArrayList<>()), expireTime, claims);
     }
 
-//    public AuthRequestBean userAuthorities(Claims claims, String accessKey,
-//                                           Integer accessId) {
-//
-//        Integer claimedUser = claims.get("user", Integer.class);
-//
-//        String userType = claims.getSubject();
-//
-//        if(userType.equals(JwtTypes.SUPER_ADMIN.name())) {
-//            return new AuthRequestBean("allowed",
-//                    false, ApplicationConstant.ALL_PRIVILEGE);
-//        } else {
-//            UserPermissionsBean permission = userPermissionsRepository
-//                    .getEntityByUserIdAndAccessKey(claimedUser, accessKey, accessId);
-//
-//            if(permission == null) {
-//
-//                LOGGER.error("error");
-//
-//                return new AuthRequestBean(ApplicationConstant.NOT_ALLOWED,
-//                        true, null);
-//            }
-//
-//            return new AuthRequestBean(ApplicationConstant.ALLOW,
-//                    false, permission.getAccessId());
-//        }
-//    }
+    public AuthRequestBean userAuthorities(Claims claims, Integer accessId) {
+
+        Integer claimedUserId = claims.get("uid", Integer.class);
+
+        UserBean userBean = userRepository.getById(claimedUserId);
+
+        String userType = claims.getSubject();
+
+        if(userType.equals(JwtTypes.SUPER_ADMIN.name())) {
+            return new AuthRequestBean("allowed",
+                    false, 5);
+        } else {
+            UserPermissionBean permission = userPermissionRepository
+                    .getUserPermissionsByRoleAndPermission(userBean.getRole().getId(), accessId);
+
+            if(permission == null) {
+
+                LOGGER.error("error");
+
+                return new AuthRequestBean("Not Allowed",
+                        true, null);
+            }
+
+            return new AuthRequestBean("Allowed",
+                    false, accessId);
+        }
+    }
 }

@@ -46,6 +46,9 @@ public class JwtUserDetailsService implements UserDetailsService {
         }
 
         if(tokenUtil.validateToken(jwtToken, jwtTypes)){
+
+            logger.warn("get all claims from token");
+
             return tokenUtil.getAllClaimsFromToken(jwtToken);
         }
 

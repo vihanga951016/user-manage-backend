@@ -4,20 +4,23 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
+import io.jsonwebtoken.security.Keys;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
+import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
 
-    private static final String secretKey = Base64.getEncoder()
-            .encodeToString("asdasndnasoduihuibdiubuibduiashdfh9oshidbiucnos89foahsdohjbdiaisbdu9ahsdbaisbdiabsubcasbiuasbdishd9u"
-                    .getBytes());
+    private static final String secretKey = "asdasndnasoduihuibdiubuibduiashdfh9oshidbiucnos89foahsdohjbdiIUISUDBIBASBiubasiudh8hhuih9d8hauhdiudhjijbasidbaisbdu9ahsdbaisbdiabsubcasbiuasbdishd9u";
+
     private static JwtTokenProvider instance;
 
     public static JwtTokenProvider getInstance() {
@@ -52,7 +55,7 @@ public class JwtTokenProvider {
                 .setIssuer("lms")
                 .setIssuedAt(new Date())
                 .setExpiration(validity)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(getEncodedKey(), SignatureAlgorithm.HS256)
                 .compact();
         logger.info("Token generated for username >> " + username);
 
@@ -60,10 +63,20 @@ public class JwtTokenProvider {
     }
 
     public Claims getClaims(String jwt) throws ExpiredJwtException {
-        //This line will throw an exception if it is not a signed JWS (as expected)
-        return Jwts.parser()
-                .setSigningKey(secretKey)
+
+        logger.info("subject >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " +jwt);
+
+        Claims cl = Jwts.parserBuilder()
+                .setSigningKey(getEncodedKey())
+                .build()
                 .parseClaimsJws(jwt)
                 .getBody();
+
+        return cl;
+    }
+
+    private Key getEncodedKey() {
+        String keyBytes = Encoders.BASE64.encode(secretKey.getBytes());
+        return Keys.hmacShaKeyFor(keyBytes.getBytes());
     }
 }

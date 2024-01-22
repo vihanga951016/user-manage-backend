@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
-    private static final long serialVersionUID = -2550185165626007488L;
     private static Logger logger = LogManager.getLogger(JwtTokenUtil.class);
 
     public String getUsernameFromToken(String token) {

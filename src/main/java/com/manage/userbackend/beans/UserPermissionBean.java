@@ -15,10 +15,10 @@ public class UserPermissionBean {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "roleId")
     private RoleBean role;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "permissionId")
     private PermissionsBean permission;
 }

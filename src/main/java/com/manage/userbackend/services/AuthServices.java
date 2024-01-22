@@ -37,93 +37,105 @@ public class AuthServices {
 
     private static Logger LOGGER = LogManager.getLogger(AuthServices.class);
 
-    public ResponseEntity register(UserBean userBean, HttpServletRequest request){
-        try {
-            jwtUserDetailsService.authenticate(request, JwtTypes.USER_MANAGE_APP);
+//    public ResponseEntity register(UserBean userBean, HttpServletRequest request){
+//        try {
+//            jwtUserDetailsService.authenticate(request, JwtTypes.USER_MANAGE_APP);
+//
+//            UserBean findAdmin = userRepository.findAnyAdmin();
+//
+//            if(findAdmin != null) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+//                        .responseFail("Supper Admin Already Exist"));
+//            }
+//
+//            UserBean existByMail = userRepository.findByEmail(userBean.getEmail());
+//
+//            if(existByMail != null) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+//                        .responseFail("Email Exist"));
+//            }
+//
+//            RoleBean roleBean = roleRepository.getSuperAdmin();
+//
+//            UserBean user = UserBean.builder()
+//                    .fullName(userBean.getFullName())
+//                    .email(userBean.getEmail())
+//                    .deactivated(false)
+//                    .password(HashUtils.hash(userBean.getPassword()))
+//                    .role(roleBean)
+//                    .build();
+//
+//            return ResponseEntity.ok().body(new HttpResponse<>()
+//                    .responseOk(userRepository.save(user)));
+//
+//        } catch (UserManageException ex) {
+//            return ResponseEntity.internalServerError().body(new HttpResponse<>()
+//                    .responseFail(ex.getMessage()));
+//        }
+//    }
 
-            UserBean findAdmin = userRepository.findAnyAdmin();
-
-            if(findAdmin != null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
-                        .responseFail("Supper Admin Already Exist"));
-            }
-
-            RoleBean roleBean = roleRepository.getSuperAdmin();
-
-            UserBean user = UserBean.builder()
-                    .fullName(userBean.getFullName())
-                    .email(userBean.getEmail())
-                    .deactivated(false)
-                    .password(userBean.getPassword())
-                    .role(roleBean)
-                    .build();
-
-            return ResponseEntity.ok().body(new HttpResponse<>()
-                    .responseOk(userRepository.save(user)));
-
-        } catch (UserManageException ex) {
-            return ResponseEntity.internalServerError().body(new HttpResponse<>()
-                    .responseFail(ex.getMessage()));
-        }
-    }
-
-    public ResponseEntity userLogin(HttpServletRequest request,
-                                    UserLoginRequestBean requestBean) {
-        try {
-
-            jwtUserDetailsService.authenticate(request, JwtTypes.USER_MANAGE_APP);
-
-            UserBean user = userRepository.findByEmail(requestBean.getUsername());
-
-            if(user == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
-                        .responseFail("Incorrect Email"));
-            }
-
-            if(user.isDeactivated()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
-                        .responseFail("Account Deactivated"));
-            }
-
-            if(HashUtils.checkEncrypted(requestBean.getPassword(), user.getPassword())){
-                LOGGER.info("Password hash matched | " + user.getId() + " | user |"
-                        + user.getId() +" | email |" + user.getEmail());
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
-                        .responseFail("Incorrect Password"));
-            }
-
-            user.setToken(authService.createUserLoginToken(user, requestBean.getPassword()));
-
-            List<Integer> getAllPreviousLoginIds =
-                    userAuthenticationRepository.getAllLoggedInEntityIds(requestBean.getUsername());
-
-            if(getAllPreviousLoginIds.size() > 0) {
-                userAuthenticationRepository
-                        .updateAllLoggedInEntities(getAllPreviousLoginIds, new Date());
-            }
-
-            UserAuthenticationBean authenticationBean = UserAuthenticationBean
-                    .builder()
-                    .username(user.getEmail())
-                    .loginTime(new Date())
-                    .logoutTime(null)
-                    .build();
-
-            userAuthenticationRepository.save(authenticationBean);
-
-            return ResponseEntity.ok().body(new HttpResponse<>().responseOk(user));
-
-        } catch (UserManageException ex) {
-            return ResponseEntity.internalServerError().body(new HttpResponse<>()
-                    .responseFail(ex.getMessage()));
-        }
-    }
+//    public ResponseEntity userLogin(UserLoginRequestBean requestBean,
+//                                    HttpServletRequest request) {
+//        try {
+//
+//            jwtUserDetailsService.authenticate(request, JwtTypes.USER_MANAGE_APP);
+//
+//            UserBean user = userRepository.findByEmail(requestBean.getUsername());
+//
+//            if(user == null) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+//                        .responseFail("Incorrect Email"));
+//            }
+//
+//            if(user.isDeactivated()) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+//                        .responseFail("Account Deactivated"));
+//            }
+//
+//            if(HashUtils.checkEncrypted(requestBean.getPassword(), user.getPassword())){
+//                LOGGER.info("Password hash matched | " + user.getId() + " | user |"
+//                        + user.getId() +" | email |" + user.getEmail());
+//            } else {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+//                        .responseFail("Incorrect Password"));
+//            }
+//
+//            user.setToken(authService.createUserLoginToken(user, requestBean.getPassword()));
+//
+//            List<Integer> getAllPreviousLoginIds =
+//                    userAuthenticationRepository.getAllLoggedInEntityIds(requestBean.getUsername());
+//
+//            if(getAllPreviousLoginIds.size() > 0) {
+//                userAuthenticationRepository
+//                        .updateAllLoggedInEntities(getAllPreviousLoginIds, new Date());
+//            }
+//
+//            UserAuthenticationBean authenticationBean = UserAuthenticationBean
+//                    .builder()
+//                    .username(user.getEmail())
+//                    .loginTime(new Date())
+//                    .logoutTime(null)
+//                    .build();
+//
+//            userAuthenticationRepository.save(authenticationBean);
+//
+//            return ResponseEntity.ok().body(new HttpResponse<>().responseOk(user));
+//
+//        } catch (UserManageException ex) {
+//            return ResponseEntity.internalServerError().body(new HttpResponse<>()
+//                    .responseFail(ex.getMessage()));
+//        }
+//    }
 
     public ResponseEntity userLogout(HttpServletRequest request) {
         try {
+
+            LOGGER.info("going to logout.");
+
             Claims claims = jwtUserDetailsService.authenticate(request, JwtTypes.USER,
                     JwtTypes.SUPER_ADMIN, JwtTypes.ADMIN);
+
+            LOGGER.info("authenticated.");
 
             Integer userId = claims.get("uid", Integer.class);
 
@@ -145,5 +157,79 @@ public class AuthServices {
             return ResponseEntity.internalServerError().body(new HttpResponse<>()
                     .responseFail(ex.getMessage()));
         }
+    }
+
+    public ResponseEntity register(UserBean userBean, HttpServletRequest request){
+        UserBean findAdmin = userRepository.findAnyAdmin();
+
+        if(findAdmin != null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+                    .responseFail("Supper Admin Already Exist"));
+        }
+
+        UserBean existByMail = userRepository.findByEmail(userBean.getEmail());
+
+        if(existByMail != null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+                    .responseFail("Email Exist"));
+        }
+
+        RoleBean roleBean = roleRepository.getSuperAdmin();
+
+        UserBean user = UserBean.builder()
+                .fullName(userBean.getFullName())
+                .email(userBean.getEmail())
+                .deactivated(false)
+                .password(HashUtils.hash(userBean.getPassword()))
+                .role(roleBean)
+                .build();
+
+        return ResponseEntity.ok().body(new HttpResponse<>()
+                .responseOk(userRepository.save(user)));
+    }
+
+    public ResponseEntity userLogin(UserLoginRequestBean requestBean,
+                                    HttpServletRequest request) {
+
+        UserBean user = userRepository.findByEmail(requestBean.getUsername());
+
+        if(user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+                    .responseFail("Incorrect Email"));
+        }
+
+        if(user.isDeactivated()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+                    .responseFail("Account Deactivated"));
+        }
+
+        if(HashUtils.checkEncrypted(requestBean.getPassword(), user.getPassword())){
+            LOGGER.info("Password hash matched | " + user.getId() + " | user |"
+                    + user.getId() +" | email |" + user.getEmail());
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new HttpResponse<>()
+                    .responseFail("Incorrect Password"));
+        }
+
+        user.setToken(authService.createUserLoginToken(user, requestBean.getPassword()));
+
+        List<Integer> getAllPreviousLoginIds =
+                userAuthenticationRepository.getAllLoggedInEntityIds(requestBean.getUsername());
+
+        if(getAllPreviousLoginIds.size() > 0) {
+            userAuthenticationRepository
+                    .updateAllLoggedInEntities(getAllPreviousLoginIds, new Date());
+        }
+
+        UserAuthenticationBean authenticationBean = UserAuthenticationBean
+                .builder()
+                .username(user.getEmail())
+                .loginTime(new Date())
+                .logoutTime(null)
+                .build();
+
+        userAuthenticationRepository.save(authenticationBean);
+
+        return ResponseEntity.ok().body(new HttpResponse<>().responseOk(user));
     }
 }

@@ -26,4 +26,7 @@ public class UserBean {
     private RoleBean role;
     private String token;
 
+    @Transient
+    private String userRole;
+
 }
